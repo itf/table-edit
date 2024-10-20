@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load JSON - simple-datatables</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="./simple-datatables@latest.js"></script>
+    <script src="./data.js"></script>
+    <script src="./table.js"></script>
+    <link rel="stylesheet" href="./editing.css">
+</head>
+
+<body>
+    <header>
+        <h1>
+            Pacientes
+        </h1>
+    </header>
+    <div class="flex-container-vertical" id='tableAndButtons'>
+        <div id="buttons">
+            <label for="import" class="button-top">Carregar</label>
+            <input type="file" class="hidden"  id="import"></input>
+            <button class="button-top" id="export">Exportar</button>
+          </span>
+        </div>
+        <table id="table"></table>
+    </div>    
+
+
+</body>
+
+</html>
