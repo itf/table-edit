@@ -22,27 +22,6 @@ function getMaxPcod(){
         return parseInt(row.cells[0].text)
     }
 }
-// document.addEventListener('DOMContentLoaded', function () {
-//     const importButton = document.querySelector('#import');
-
-//     importButton.addEventListener('change', function (event) {
-//         const file = event.target.files[0];
-//         const reader = new FileReader();
-//         reader.onload = function (event) {
-//             // NOTE: event.target point to FileReader
-//             var contents = event.target.result;
-//             json = JSON.parse(contents);
-//             if (json['Clini_01']){
-//                 json = json['Clini_01'];
-//             }
-//             // const currentJson = getJson();
-//             loadJsonOntoTable(json);
-//             //ur.do('loadJson', {toLoad: json, previous: currentJson});
-//             importButton.value = '';
-//         };
-
-//         reader.readAsText(file);
-//     });
 
 document.addEventListener('DOMContentLoaded', function () {
     const importButton = document.querySelector('#import');
