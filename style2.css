@@ -1,0 +1,25 @@
+.button-top {
+   background-color: rgba(0, 0, 0, 0.8);
+   border: none;
+   color: white;
+   cursor: pointer;
+   padding: 5px 20px;
+   margin-top: 3px;
+   margin-bottom: 3px;
+   text-align: center;
+   text-decoration: none;
+   display: inline-block;
+   font-size: 18px;
+   border-radius: 8px;
+}
+
+.button-top:active {
+   background-color: rgba(0, 0, 0, 0.3);
+   transform: translateY(4px);
+}
+
+.button-top:hover {
+   background-color: rgba(0, 0, 0, 0.7);
+   transform: translateY(2px);
+
+}

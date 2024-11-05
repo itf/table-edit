@@ -26,6 +26,9 @@ function getMaxPcod(){
 document.addEventListener('DOMContentLoaded', function () {
     const importButton = document.querySelector('#import');
     const exportButton = document.querySelector('#export');
+    const bkupButton = document.querySelector('#bkup');
+    const novoButton = document.querySelector('#novo');
+    const fixDataButton = document.querySelector('#dataConverter');
 
     importButton.addEventListener('change', function (event) {
         const file = event.target.files[0];
@@ -43,6 +46,17 @@ document.addEventListener('DOMContentLoaded', function () {
     exportButton.addEventListener('click', function (event) {
         exportCsv();
     });
+    bkupButton.addEventListener('click', function (event) {
+        backupCsv();
+    });
+    novoButton.addEventListener('click', function (event) {
+        if (table){
+            addRow();
+        }
+    });
+    fixDataButton.addEventListener('click', function (event) {
+        fixDataTable();
+    });    
 
 
 
@@ -85,19 +99,46 @@ document.addEventListener('DOMContentLoaded', function () {
         if (editor) { editor.destroy(); }
     }
 
+    function translateHeadings(headings) {
+        let dict = {
+            Name: "Nome",
+            PCod: "#",
+            BirthDate: "Data de Nascimento",
+            Address: "Endereço",
+            Phone: "Telefone",
+            cel: "Celular",
+            City: "Cidade",
+            State: "Estado",
+            Occupation: "Profissão",
+            Mother: "Mãe",
+            Father: "Pai",
+            District: "Bairro",
+        }
+        for (index in headings){
+            if (headings[index] in dict){
+                headings[index] = dict[headings[index]]
+            }
+        }
+    }
+
     // Creates a new table
     function loadCSVOntoTable(data) {
         let csv = simpleDatatables.convertCSV({ data: data, columnDelimiter: "%%", headings: true })
         if (csv.data[csv.data.length - 1].length == 1) {
             csv.data.pop();
         }
-        let headings = csv
-        // console.log(data);
+        translateHeadings(csv.headings);
+
         resetTable();
         table = new simpleDatatables.DataTable("#table", {
             data: csv,
             fixedColumns: false, //To make things faster on resize
-            template: getTemplate()
+            template: getTemplate(),
+            columns: [
+                {select: 0,
+                    type: "number",
+                    sort: "desc"}
+            ]
 
         })
         table.multiSearch = debounce(table.multiSearch, 500);
@@ -109,18 +150,26 @@ document.addEventListener('DOMContentLoaded', function () {
     // }
 
     function exportCsv() {
-        downloadString(generateCSV());
+        downloadString(generateCSV(), "pacientes.csv");
+    }
+
+    function backupCsv() {
+        let currentDate = new Date().toJSON().slice(0, 10);
+        downloadString(generateCSV(), "backup-pacientes-"+ currentDate +".csv");
     }
 
         
     function addRow(){
         let newRowData= Array(table.data.headings.length).fill("");
-        editor.editing=true;
+        editor.editing = editor.editingRow=true;
         newRowData[0] = getMaxPcod()+1;
         table.rows.add(newRowData)
+        // table.insert({data: [newRowData]})
+
         let rowIndex = table.data.data['length']-1;
         editor.data.row = table.data.data[rowIndex].cells; 
         editor.data.rowIndex = rowIndex;
+        editor.editRow(editor.data.row);
         editor.editRowModal();
     }
 
@@ -139,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         return editor.editCell(td)
                     }
                 }, {
-                    text: "<span class='mdi mdi-lead-pencil'></span> Edit Linha",
+                    text: "<span class='mdi mdi-lead-pencil'></span> Editar Linha",
                     action: (editor, _event) => {
                         const tr = editor.event.target.closest("tr")
                         return editor.editRow(tr)
@@ -165,13 +214,13 @@ document.addEventListener('DOMContentLoaded', function () {
             ],
             labels: {
                 closeX: "x",
-                editCell: "Edit Cell",
-                editRow: "Edit Row",
-                removeRow: "Remove Row",
-                reallyRemove: "Are you sure?",
-                reallyCancel: "Do you really want to cancel?",
-                save: "Save",
-                cancel: "Cancel"
+                editCell: "Editar",
+                editRow: "Editar paciente",
+                removeRow: "Remover",
+                reallyRemove: "Voce tem certeza",
+                reallyCancel: "Voce realmente quer cancelar?",
+                save: "Salvar",
+                cancel: "Cancelar"
             },
         })
 
@@ -181,6 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         table.on("editable.save.row", (newValue, oldValue, row) => {
             console.log(`cell is saved: newValue=${newValue}, oldValue=${oldValue}, row=${row}`)
+            resort();
             exportCsv();
         })
     }
@@ -190,14 +240,55 @@ document.addEventListener('DOMContentLoaded', function () {
         let csv= table.data.data.map(row => row.cells.map(x=>x.text).join("%%")).join("\r\n")
         csv = [headings, csv].join("\n");
         return csv;
-
     }
-    async function downloadString(inputString) {
+
+    function resort(){
+        if (table.columns._state.sort) {
+            table.columns.sort(table.columns._state.sort.column, table.columns._state.sort.dir, true)
+        }
+        table.update(true);
+    }
+
+    function fixDate(d){
+        if(!/^\d{4}\-\d{2}\-\d{2}[ ]?$/.test(d)){
+            return d;
+        }
+        else{
+            return d.slice(8,10)+"/"+d.slice(5,7)+"/"+d.slice(0,4)
+        }
+    }
+
+    function generateCSVFixedData(){
+        let headings = table.data.headings.map(cell=>cell.data).join("%%");
+        let dateIndex = 2;
+        let csv= table.data.data.map((row, index) => 
+            row.cells.map((x, index)=> {
+                if (index == dateIndex){
+                    return fixDate(x.text);
+                }
+                else{
+                    return x.text;
+                }
+            }
+            ).join("%%")
+        ).join("\r\n")
+        csv = [headings, csv].join("\n");
+        return csv;
+    }
+
+    function fixDataTable(){
+        if (confirm("Converter datas 1999-01-31 to 31/01/1999?")) {
+            let csv = generateCSVFixedData();
+            loadCSVOntoTable(csv);
+        }
+    }
+
+    async function downloadString(inputString, name) {
         let blob = new Blob([inputString], { type: 'text/plain' }); // ! Blob
 
         let elemx = window.document.createElement('a');
         elemx.href = window.URL.createObjectURL(blob); // ! createObjectURL
-        elemx.download = "pacientes.csv";
+        elemx.download = name;
         elemx.style.display = 'none';
         document.body.appendChild(elemx);
         elemx.click();

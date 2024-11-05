@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Load JSON - simple-datatables</title>
+    <title>Pacientes - ficha csv</title>
     <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./style2.css">
     <script src="./simple-datatables@latest.js"></script>
     <script src="./table.js"></script>
     <link rel="stylesheet" href="./editing.css">
@@ -21,7 +22,10 @@
         <div id="buttons">
             <label for="import" class="button-top">Carregar</label>
             <input type="file" class="hidden"  id="import"></input>
-            <button class="button-top" id="export">Exportar</button>
+            <button class="button-top" id="export">Salvar</button>
+            <button class="button-top" id="bkup">Backup</button>
+            <button class="button-top" id="novo">Novo paciente</button>
+            <button class="button-top2" id="dataConverter">Converter data para DD/MM/AAAA</button>
           </span>
         </div>
         <table id="table"></table>
