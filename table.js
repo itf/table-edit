@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const bkupButton = document.querySelector('#bkup');
     const novoButton = document.querySelector('#novo');
     const fixDataButton = document.querySelector('#dataConverter');
+    const hideCheckbox = document.querySelector('#hideextra');
 
     importButton.addEventListener('change', function (event) {
         const file = event.target.files[0];
@@ -113,6 +114,9 @@ document.addEventListener('DOMContentLoaded', function () {
             Mother: "Mãe",
             Father: "Pai",
             District: "Bairro",
+            CivilStatus: "Estado Civil",
+            Sex: "Sexo",
+
         }
         for (index in headings){
             if (headings[index] in dict){
@@ -120,6 +124,42 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
+
+    function getIndexesToHide(){
+        let filters = [];
+        let toHide = ["Endereço", "Estado", "Profissão", "Mãe", "Pai", "Bairro", "Estado Civil", "EMail"]
+        table.data.headings.forEach((element, index) => {
+            if (toHide.includes(element.data)){
+                filters.push(index);
+            }
+        });
+        return filters;
+    }
+
+    function hideExtraColumns(){
+        let indexes = getIndexesToHide();
+        indexes.forEach(index => table.columns.settings[index].hidden=true)
+        table.refresh();
+        editor.options.excludeColumns=indexes.concat([0]);
+    }
+
+    function showExtraColumns(){
+        table.columns.settings.forEach(x=>x.hidden=false);
+        table.refresh();
+        editor.options.excludeColumns=[0]
+    }
+
+    function handleHideButton(){
+        let hide = hideCheckbox.checked;
+        if (hide){
+            hideExtraColumns();
+        }
+        else{
+            showExtraColumns();
+        }
+    }
+    hideCheckbox.addEventListener('change', handleHideButton);
+
 
     // Creates a new table
     function loadCSVOntoTable(data) {
@@ -133,16 +173,24 @@ document.addEventListener('DOMContentLoaded', function () {
         table = new simpleDatatables.DataTable("#table", {
             data: csv,
             fixedColumns: false, //To make things faster on resize
+            perPage: 30,
+            perPageSelect: [10, 20, 30, 50, 100],
+            format: "DD/MM/YYYY",
+            type: "html",
+            ignorePunctuation: false,
             template: getTemplate(),
             columns: [
                 {select: 0,
                     type: "number",
-                    sort: "desc"}
+                    sort: "desc"},
+
             ]
 
         })
         table.multiSearch = debounce(table.multiSearch, 500);
+        table.data.data.forEach(row=> row.cells[2].order = dateToOrder(row.cells[2].text))
         createEditor();
+        handleHideButton();
     }
 
     // function exportJson() {
@@ -164,12 +212,10 @@ document.addEventListener('DOMContentLoaded', function () {
         editor.editing = editor.editingRow=true;
         newRowData[0] = getMaxPcod()+1;
         table.rows.add(newRowData)
-        // table.insert({data: [newRowData]})
 
         let rowIndex = table.data.data['length']-1;
         editor.data.row = table.data.data[rowIndex].cells; 
         editor.data.rowIndex = rowIndex;
-        editor.editRow(editor.data.row);
         editor.editRowModal();
     }
 
@@ -230,6 +276,9 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         table.on("editable.save.row", (newValue, oldValue, row) => {
             console.log(`cell is saved: newValue=${newValue}, oldValue=${oldValue}, row=${row}`)
+            let rowIndex = table.data.data['length']-1;
+            let r = table.data.data[rowIndex]; 
+            r.cells[2].order = dateToOrder(r.cells[2].text)
             resort();
             exportCsv();
         })
@@ -255,6 +304,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         else{
             return d.slice(8,10)+"/"+d.slice(5,7)+"/"+d.slice(0,4)
+        }
+    }
+
+    function dateToOrder(d){
+        if(!/^\d{2}\/\d{2}\/\d{4}[ ]?$/.test(d)){
+            return d;
+        }
+        else{
+            return d.slice(6,10)+d.slice(3,5)+d.slice(0,2)
         }
     }
 
@@ -284,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function downloadString(inputString, name) {
-        let blob = new Blob([inputString], { type: 'text/plain' }); // ! Blob
+        let blob = new Blob([inputString], { type: 'text/csv' }); // ! Blob
 
         let elemx = window.document.createElement('a');
         elemx.href = window.URL.createObjectURL(blob); // ! createObjectURL

@@ -21,11 +21,13 @@
     <div class="flex-container-vertical" id='tableAndButtons'>
         <div id="buttons">
             <label for="import" class="button-top">Carregar</label>
-            <input type="file" class="hidden"  id="import"></input>
+            <input type="file" class="hidden"  id="import" accept=".csv"/></input>
             <button class="button-top" id="export">Salvar</button>
             <button class="button-top" id="bkup">Backup</button>
             <button class="button-top" id="novo">Novo paciente</button>
             <button class="button-top2" id="dataConverter">Converter data para DD/MM/AAAA</button>
+            <input type="checkbox" id="hideextra" name="hideextra" value="hideextra" checked>
+            <label for="hideextra"> Esconder os extras</label><br>
           </span>
         </div>
         <table id="table"></table>

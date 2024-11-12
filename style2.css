@@ -23,3 +23,27 @@
    transform: translateY(2px);
 
 }
+
+#hideextra {
+  zoom: 2;
+  transform: scale(2);
+  margin-left: 2em
+}
+
+body {
+   font-size: large;
+   max-width: 97%;
+   margin:auto;
+   margin-top: 30px;
+}
+
+table tr:nth-child(odd) td{
+    background: #eee;
+}
+table tr:nth-child(even) td{
+    background: #fff;
+}
+
+.hidden{
+   display: none;
+}
